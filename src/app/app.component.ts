@@ -59,6 +59,7 @@ export class AppComponent implements OnInit {
     const stream = await navigator.mediaDevices.getUserMedia(this.options);
 
     this.video.nativeElement.srcObject = stream;
+    this.video.nativeElement.muted = true;
 
     this.recorder = new MediaRecorder(stream);
 
