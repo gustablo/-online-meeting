@@ -10,6 +10,10 @@ export class SocketService {
 
   constructor(private socket: Socket) {}
 
+  disconnect() {
+    this.socket.emit('disconnect');
+  }
+
   sendBlob(blob: any) {
     this.socket.emit('send', blob);
   }
@@ -24,5 +28,9 @@ export class SocketService {
 
   update() {
     return this.socket.fromEvent('update');
+  }
+
+  userDisconnected() {
+    return this.socket.fromEvent('user_disconnected');
   }
 }

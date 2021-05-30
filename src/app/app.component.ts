@@ -26,8 +26,18 @@ export class AppComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.socketService.update().subscribe((evt) => {
-      this.createVideo(evt as any);
-    })
+      const event = evt as any;
+      
+      const users = Object.keys(event.users);
+
+      for (const user of users) {
+        this.createVideo(user);
+      }
+    });
+
+    this.socketService.userDisconnected().subscribe(id => {
+      const video = document.getElementById(id as any).remove();
+    });
 
     this.socketService.join('gustavo');
 
@@ -83,7 +93,11 @@ export class AppComponent implements OnInit {
       const id = data.id;
       const blob = new Blob(data.blob);
 
-      document.getElementById(id).remove();
+      const toRemove = document.getElementById(id)
+
+      if (toRemove) {
+        toRemove.remove();
+      }
 
       const url = window.URL.createObjectURL(blob);
 
@@ -91,6 +105,10 @@ export class AppComponent implements OnInit {
     });
 
     this.recorder.start();
+  }
+
+  ngOnDestroy() {
+    this.socketService.disconnect();
   }
 }
 
