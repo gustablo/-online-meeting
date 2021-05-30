@@ -14,7 +14,7 @@ export class AppComponent implements OnInit {
   video: ElementRef<HTMLVideoElement>;
 
   title = 'online-meeting';
-  options: MediaStreamConstraints = { video: true, audio: false };
+  options: MediaStreamConstraints = { video: true, audio: true };
 
   recorder;
   sourceBuffer = null;
