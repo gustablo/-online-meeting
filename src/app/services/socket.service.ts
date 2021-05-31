@@ -14,6 +14,10 @@ export class SocketService {
     this.socket.emit('disconnect');
   }
 
+  joined() {
+    return this.socket.fromEvent('joined');
+  }
+
   sendBlob(blob: any) {
     this.socket.emit('send', blob);
   }

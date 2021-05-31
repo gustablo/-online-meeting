@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
   title = 'online-meeting';
   options: MediaStreamConstraints = { video: true, audio: true };
 
+  id;
   recorder;
   sourceBuffer = null;
   blobs = [];
@@ -25,13 +26,19 @@ export class AppComponent implements OnInit {
   ) { }
 
   async ngOnInit(): Promise<void> {
+    this.socketService.joined().subscribe(id => {
+      this.id = id;
+    })
+
     this.socketService.update().subscribe((evt) => {
       const event = evt as any;
-      
+
       const users = Object.keys(event.users);
 
       for (const user of users) {
-        this.createVideo(user);
+        if (user != this.id) {
+          this.createVideo(user);
+        }
       }
     });
 
@@ -44,24 +51,24 @@ export class AppComponent implements OnInit {
     await this.recordConfigs();
   }
 
-  createVideo(id, url?): HTMLVideoElement {
+  createVideo(id, url?, idRemove?): HTMLVideoElement {
     if (document.getElementById(id)) {
       return;
     }
 
     const newVideo = document.createElement('video');
-    
+
     const addedVideo = document.getElementById('app-container').appendChild(newVideo);
     addedVideo.setAttribute('id', id);
     addedVideo.setAttribute('preload', 'auto');
-    
+    addedVideo.setAttribute('autoplay', 'autoplay');
+    addedVideo.style.width = '50%';
+    addedVideo.style.height = '50%';
+
     if (url) {
       newVideo.src = url;
     }
-    
-    newVideo.load();
-    newVideo.play();
-    return addedVideo;
+
 
   }
 
@@ -77,7 +84,7 @@ export class AppComponent implements OnInit {
       this.blobs.push(event.data);
     }
 
-    this.recorder.onstop = event => {
+    this.recorder.onstop = _ => {
       this.socketService.sendBlob(this.blobs);
 
       this.blobs = [];
@@ -89,19 +96,19 @@ export class AppComponent implements OnInit {
       this.recorder.start();
     }, 1000);
 
-    this.socketService.getBlob().subscribe(data => {
+    this.socketService.getBlob().subscribe(async data => {
       const id = data.id;
       const blob = new Blob(data.blob);
 
-      const toRemove = document.getElementById(id)
+      const url = await window.URL.createObjectURL(blob);
 
-      if (toRemove) {
-        toRemove.remove();
+      const video = document.getElementById(id) as HTMLVideoElement;
+      if (video) {
+        video.src = url;
+      } else {
+        this.createVideo(id, url);
       }
 
-      const url = window.URL.createObjectURL(blob);
-
-      this.createVideo(id, url);
     });
 
     this.recorder.start();
